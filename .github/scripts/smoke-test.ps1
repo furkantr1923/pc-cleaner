@@ -55,6 +55,13 @@ if ($p.HasExited) { throw "Tarama sırasında uygulama kapandı." }
 Write-Host "BAŞARILI: Tarama sonrası uygulama çalışıyor."
 Save-Window $h "$OutDir/2-tarama-sonucu.png"
 
-$p.CloseMainWindow() | Out-Null
-if (-not $p.WaitForExit(10000)) { Stop-Process $p -Force; throw "Uygulama kapanmadı." }
+$p.Refresh()
+$closed = $p.CloseMainWindow()
+Write-Host "CloseMainWindow: $closed"
+if (-not $p.WaitForExit(10000)) {
+  Save-Window $h "$OutDir/3-kapanmadi.png"
+  Get-Process -Id $p.Id | Format-List Id, Responding, MainWindowTitle, MainWindowHandle | Out-String | Write-Host
+  Stop-Process $p -Force
+  throw "Uygulama kapanmadı."
+}
 Write-Host "BAŞARILI: Uygulama düzgün kapandı."
