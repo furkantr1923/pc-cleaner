@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Tarama, yol doğrulama ve silme mantığı burada.
+    Bilinçli olarak platformdan bağımsız (net10.0) tutuldu: böylece
+    kritik güvenlik kodu arayüzden ayrı olarak otomatik test edilebilir.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>PcCleaner.Core</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="PcCleaner.Tests" />
+  </ItemGroup>
+
+</Project>

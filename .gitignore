@@ -1,0 +1,13 @@
+## .NET derleme çıktıları
+bin/
+obj/
+artifacts/
+publish/
+TestResults/
+*.user
+*.suo
+.vs/
+.vscode/
+.idea/
+*.trx
+*.log

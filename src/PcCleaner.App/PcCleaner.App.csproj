@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- Linux/macOS üzerinde de Windows hedefli derleme yapılabilsin -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+
+    <AssemblyName>PCCleaner</AssemblyName>
+    <RootNamespace>PcCleaner.App</RootNamespace>
+    <AssemblyTitle>PC CLEANER</AssemblyTitle>
+    <Description>Basit ve güvenli geçici dosya temizleyici</Description>
+
+    <ApplicationIcon>Assets\pccleaner.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <ApplicationVisualStyles>true</ApplicationVisualStyles>
+    <ApplicationDefaultFont>Segoe UI, 9pt</ApplicationDefaultFont>
+
+    <!-- Yalnızca Türkçe kaynak dosyaları pakete girsin (daha küçük çıktı) -->
+    <SatelliteResourceLanguages>tr</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\pccleaner.ico" LogicalName="PcCleaner.App.pccleaner.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PcCleaner.Core\PcCleaner.Core.csproj" />
+  </ItemGroup>
+
+</Project>
