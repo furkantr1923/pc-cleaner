@@ -32,7 +32,17 @@ jobs:
       - name: Portable EXE üret
         run: dotnet publish src/PcCleaner.App/PcCleaner.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:PublishReadyToRun=true -p:DebugType=none -o artifacts/portable
 
+      - name: Açılış testi (GUI) + ekran görüntüsü
+        shell: pwsh
+        run: ./.github/scripts/smoke-test.ps1
+
       - uses: actions/upload-artifact@v4
         with:
           name: PCCleaner-portable
           path: artifacts/portable/PCCleaner.exe
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: screenshots/
