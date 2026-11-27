@@ -1,0 +1,109 @@
+=====================================================================
+  PC CLEANER — NASIL YAPILDI?  (Biri sorduğunda okunacak kısa açıklama)
+=====================================================================
+
+1) NE?
+---------------------------------------------------------------------
+Windows 10/11 için, yalnızca kullanıcının geçici dosyalarını tarayan ve
+SADECE kullanıcının onayladığı dosyaları silen küçük bir masaüstü uygulaması.
+Ücretsiz, reklamsız, internetsiz, hesapsız, veri toplamıyor.
+
+
+2) HANGİ TEKNOLOJİLER?
+---------------------------------------------------------------------
+- Dil ............ C#
+- Platform ....... .NET 10 (LTS), Windows Forms
+- Test ........... xUnit (39 otomatik test)
+- Kurulum ........ NSIS (Setup.exe üretir)
+- CI ............. GitHub Actions (her push'ta gerçek Windows'ta derle + test et)
+
+Neden WinForms?  En sade, en hızlı açılan, Windows'a yerleşik standart
+kontrollerle çalışan seçenek. WPF/MAUI bu kadar küçük bir araç için fazla.
+
+
+3) PROJE YAPISI — NEDEN 3 PARÇA?
+---------------------------------------------------------------------
+  src/PcCleaner.Core   → Asıl mantık: tarama, yol güvenliği, silme
+  src/PcCleaner.App    → Sadece arayüz (pencere, düğmeler, liste)
+  tests/PcCleaner.Tests→ Core'u test eden otomatik testler
+
+Mantığı arayüzden ayırdım çünkü "hangi dosya silinebilir?" kararı
+uygulamanın en kritik kısmı. Arayüzden bağımsız olunca bu kısmı pencere
+açmadan, otomatik olarak test edebiliyorum.
+
+
+4) UYGULAMA NASIL ÇALIŞIYOR?
+---------------------------------------------------------------------
+TARAMA (Scanner.cs)
+  - Sadece onaylı klasörler: %TEMP% ve %LOCALAPPDATA%\CrashDumps
+  - Klasörleri tek tek dolaşır (Stack ile, özyinelemesiz).
+  - Arka planda çalışır (Task.Run) → pencere donmaz.
+  - CancellationToken ile iptal edilebilir.
+  - Erişilemeyen klasörler çökme yerine sayılıp raporlanır.
+
+SİLME (Cleaner.cs) — her dosya için sırayla:
+  1. Dosyanın klasörü hâlâ onaylı listede mi?
+  2. Yol gerçekten o klasörün İÇİNDE mi? ("..\..\" hilesi burada elenir)
+  3. Dosya veya üst klasörü bir kısayol/junction (reparse point) mi?
+  4. Tarama sonrası salt okunur/sistem dosyasına dönüşmüş mü?
+  5. Başka program kullanıyor mu? (dosyayı paylaşımsız açmayı dener)
+  6. Hepsi temizse normal File.Delete.
+  Herhangi biri başarısızsa dosyaya DOKUNULMAZ, sadece raporlanır.
+
+YOL GÜVENLİĞİ (PathGuard.cs)
+  - Path.GetFullPath ile yol normalleştirilir.
+  - "C:\Temp-evil" gibi aynı önekle başlayan kardeş klasörler reddedilir.
+  - %TEMP% yanlışlıkla C:\ veya kullanıcı klasörüne ayarlıysa o kök reddedilir.
+  - Windows'taki kısa adlar (C:\Users\FURKAN~1) uzun ada çevrilir,
+    böylece aynı klasör iki kez taranmaz.
+
+DİĞER GÜVENLİK KARARLARI
+  - Son 24 saatte değişen dosyalar listelenmez (çalışan kurulum olabilir).
+  - app.manifest → "asInvoker": yönetici izni İSTENMEZ.
+  - İzin değiştirme, zorla silme, kayıt defteri işlemi YOK.
+
+
+5) NASIL TEST EDİLDİ?
+---------------------------------------------------------------------
+- Her test kendi sahte "Temp" klasörünü ve onun dışında sahte bir
+  "kişisel" klasör oluşturur. Gerçek dosyalara asla dokunulmaz.
+- Test edilenler: tarama, boyut hesabı, iptal, seçili silme, boş seçim,
+  kilitli dosya, izin reddi, salt okunur, path traversal, symlink ile
+  kök dışına çıkma, kökün kendisini silme girişimi, güvensiz kökler.
+- Linux'ta: root ve yetkisiz kullanıcı ile → 39/39 geçti.
+- Gerçek Windows'ta (GitHub Actions): 37 geçti + 2 Unix'e özel test
+  atlandı, 0 hata.
+- Ayrıca CI'da uygulama gerçekten açılıp "Taramayı Başlat"a basılıyor
+  ve ekran görüntüsü alınıyor.
+Detay: TEST_RAPORU.md
+
+
+6) NASIL PAKETLENDİ?
+---------------------------------------------------------------------
+- PCCleaner.exe (taşınabilir): self-contained + single-file +
+  ReadyToRun + sıkıştırma. .NET kurulu olmasına gerek yok.
+- PCCleaner_Setup_1.0.0.exe: NSIS ile. Kullanıcı klasörüne kurar
+  (%LOCALAPPDATA%\Programs), Başlat menüsü + masaüstü kısayolu,
+  Denetim Masası'ndan kaldırılabilir, yönetici izni istemez.
+
+
+7) KENDİN DERLEMEK İSTERSEN
+---------------------------------------------------------------------
+  .\build.ps1             → derle + test + EXE + (NSIS varsa) Setup
+  dotnet test             → sadece testler
+  dotnet run --project src/PcCleaner.App   → çalıştır
+
+
+8) BİLİNEN SINIRLAR (dürüst not)
+---------------------------------------------------------------------
+- EXE dijital imzalı değil → SmartScreen "Bilinmeyen yayımcı" diyebilir.
+- Self-contained olduğu için EXE ~50 MB (içinde .NET çalışma zamanı var).
+- Uygulama Windows'taki TÜM geçici dosyaları bulduğunu iddia etmez;
+  yalnızca onaylı iki klasöre bakar.
+
+
+Mülakatta tek cümlelik özet:
+"Kapsamı bilerek dar tuttuğum, güvenlik kararlarını arayüzden ayrı bir
+ katmanda toplayıp 39 testle hem Linux hem gerçek Windows üzerinde
+ doğruladığım, kurulumu ve CI'ı olan küçük bir .NET 10 WinForms aracı."
+=====================================================================

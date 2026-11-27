@@ -13,6 +13,7 @@ public static class Win {
   [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h, out RECT r);
   [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
   [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr h, IntPtr hdc, uint flags);
+  [DllImport("user32.dll")] public static extern bool PostMessage(IntPtr h, uint msg, IntPtr w, IntPtr l);
 }
 "@
 
@@ -55,10 +56,15 @@ if ($p.HasExited) { throw "Tarama sırasında uygulama kapandı." }
 Write-Host "BAŞARILI: Tarama sonrası uygulama çalışıyor."
 Save-Window $h "$OutDir/2-tarama-sonucu.png"
 
-$p.Refresh()
-$closed = $p.CloseMainWindow()
-Write-Host "CloseMainWindow: $closed"
-if (-not $p.WaitForExit(10000)) {
+# Kullanıcının X'e basmasıyla aynı yol: WM_SYSCOMMAND / SC_CLOSE
+[Win]::SetForegroundWindow($h) | Out-Null
+$posted = [Win]::PostMessage($h, 0x0112, [IntPtr]0xF060, [IntPtr]::Zero)
+Write-Host "SC_CLOSE gönderildi: $posted"
+if (-not $p.WaitForExit(8000)) {
+  $shell.AppActivate($p.Id) | Out-Null; Start-Sleep -Milliseconds 300; $shell.SendKeys("%{F4}")
+  Write-Host "Alt+F4 gönderildi"
+}
+if (-not $p.WaitForExit(8000)) {
   Save-Window $h "$OutDir/3-kapanmadi.png"
   Get-Process -Id $p.Id | Format-List Id, Responding, MainWindowTitle, MainWindowHandle | Out-String | Write-Host
   Stop-Process $p -Force
