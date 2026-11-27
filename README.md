@@ -18,6 +18,8 @@
 
 ---
 
+<p align="center"><img src="docs/ekran-tarama.png" width="720" alt="PC CLEANER tarama sonucu ekranı" /></p>
+
 ## ✨ Ne yapar?
 
 1. **Taramayı Başlat** → yalnızca sizin kullanıcı hesabınıza ait geçici klasörleri tarar.
@@ -74,6 +76,7 @@ PcCleaner.sln
 │  │   └─ Cleaner.cs         Doğrulamalı, tek tek silme
 │  └─ PcCleaner.App/       Windows Forms arayüzü (Türkçe)
 ├─ tests/PcCleaner.Tests/  xUnit testleri (39 test)
+├─ .github/                CI: gerçek Windows'ta derleme, test ve GUI açılış testi
 ├─ installer/              NSIS kurulum betiği (Setup.exe)
 └─ build.ps1               Tek komutla derle + test + paketle
 ```
